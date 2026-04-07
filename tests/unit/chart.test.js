@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderChart, updateChart, destroyChart, prepareData, MAX_POINTS, MIN_POINTS } from '../../js/chart.js';
+import { renderChart, updateChart, destroyChart, prepareData, setChartInterval, setChartCurrency, MAX_POINTS, MIN_POINTS } from '../../js/chart.js';
 
 describe('Chart Module', () => {
   let mockChartInstance;
@@ -35,8 +35,9 @@ describe('Chart Module', () => {
       expect(slicedPrices[MAX_POINTS - 1]).toBe(60);
       expect(slicedMA).toHaveLength(MAX_POINTS);
       expect(labels).toHaveLength(MAX_POINTS);
-      expect(labels[0]).toBe('1');
-      expect(labels[MAX_POINTS - 1]).toBe(String(MAX_POINTS));
+      // Labels are now time-based (HH:MM format)
+      expect(labels[0]).toMatch(/^\d{2}:\d{2}$/);
+      expect(labels[MAX_POINTS - 1]).toMatch(/^\d{2}:\d{2}$/);
     });
 
     it('keeps all points when array is smaller than MAX_POINTS', () => {
@@ -46,7 +47,8 @@ describe('Chart Module', () => {
 
       expect(slicedPrices).toEqual([10, 20, 30]);
       expect(slicedMA).toEqual([15, 25, 35]);
-      expect(labels).toEqual(['1', '2', '3']);
+      expect(labels).toHaveLength(3);
+      labels.forEach(l => expect(l).toMatch(/^\d{2}:\d{2}$/));
     });
   });
 
@@ -93,19 +95,19 @@ describe('Chart Module', () => {
       expect(config.data.datasets).toHaveLength(2);
 
       // Price dataset
-      expect(config.data.datasets[0].label).toBe('Price');
-      expect(config.data.datasets[0].borderColor).toBe('blue');
-      expect(config.data.datasets[0].tension).toBe(0.4);
+      expect(config.data.datasets[0].label).toContain('Price');
+      expect(config.data.datasets[0].borderColor).toBe('#4f8cff');
+      expect(config.data.datasets[0].tension).toBe(0.3);
       expect(config.data.datasets[0].data).toEqual(prices);
 
       // MA dataset
-      expect(config.data.datasets[1].label).toBe('Moving Average');
-      expect(config.data.datasets[1].borderColor).toBe('orange');
-      expect(config.data.datasets[1].tension).toBe(0.4);
+      expect(config.data.datasets[1].label).toBe('Moving Avg');
+      expect(config.data.datasets[1].borderColor).toBe('#f1c40f');
+      expect(config.data.datasets[1].tension).toBe(0.3);
       expect(config.data.datasets[1].data).toEqual(ma);
 
-      // Labels
-      expect(config.data.labels).toEqual(['1', '2', '3', '4', '5']);
+      // Labels are time-based
+      expect(config.data.labels).toHaveLength(5);
     });
 
     it('slices data to MAX_POINTS when more than 50 prices provided', () => {
@@ -142,7 +144,8 @@ describe('Chart Module', () => {
 
       updateChart(mockChartInstance, prices, ma);
 
-      expect(mockChartInstance.data.labels).toEqual(['1', '2', '3']);
+      expect(mockChartInstance.data.labels).toHaveLength(3);
+      expect(mockChartInstance.data.labels[0]).toMatch(/^\d{2}:\d{2}$/);
       expect(mockChartInstance.data.datasets[0].data).toEqual([100, 200, 300]);
       expect(mockChartInstance.data.datasets[1].data).toEqual([150, 250, 350]);
       expect(mockChartInstance.update).toHaveBeenCalledOnce();

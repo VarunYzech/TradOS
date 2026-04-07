@@ -3,7 +3,8 @@ import { refreshStockData, startAutoRefresh, stopAutoRefresh, setAppConfig, _res
 
 // Mock the imported modules
 vi.mock('../../js/api.js', () => ({
-  fetchStockData: vi.fn()
+  fetchStockData: vi.fn(),
+  getStockCurrency: vi.fn(() => 'USD')
 }));
 vi.mock('../../js/analysis.js', () => ({
   computeAll: vi.fn(),
@@ -12,7 +13,9 @@ vi.mock('../../js/analysis.js', () => ({
 }));
 vi.mock('../../js/chart.js', () => ({
   renderChart: vi.fn(),
-  updateChart: vi.fn()
+  updateChart: vi.fn(),
+  setChartCurrency: vi.fn(),
+  setChartInterval: vi.fn()
 }));
 
 import { fetchStockData } from '../../js/api.js';

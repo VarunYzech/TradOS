@@ -168,8 +168,10 @@ export function getRecommendation(signalScore) {
     return {
       action: 'STRONG BUY',
       confidence,
-      reason: 'Strong bullish signals detected across most indicators. High conviction entry point.',
-      emoji: '🟢'
+      reason: 'Multiple strong bullish indicators aligned. Price is above moving average with strong upward momentum and low volatility. This is a high-conviction entry point — consider buying now.',
+      emoji: '🟢',
+      actionDetail: 'BUY NOW — Strong entry signal. Set a stop-loss 2-3% below current price to manage risk.',
+      color: '#2ecc71'
     };
   }
 
@@ -177,16 +179,20 @@ export function getRecommendation(signalScore) {
     return {
       action: 'BUY',
       confidence,
-      reason: 'Moderate bullish signals present. Consider entering with caution.',
-      emoji: '🟡'
+      reason: 'Moderate bullish signals detected. Some indicators are positive but not all conditions are ideal. The trend shows potential but with mixed signals.',
+      emoji: '🟡',
+      actionDetail: 'CONSIDER BUYING — Wait for a small dip for better entry, or buy a smaller position. Use a tighter stop-loss.',
+      color: '#f1c40f'
     };
   }
 
   return {
     action: 'WAIT / SELL',
     confidence,
-    reason: 'Weak or bearish signals detected. Consider waiting for better conditions or exiting positions.',
-    emoji: '🔴'
+    reason: 'Bearish or weak signals dominate. Price is below moving average, momentum is declining, or volatility is high. The risk of further decline is elevated.',
+    emoji: '🔴',
+    actionDetail: 'DO NOT BUY — If holding, consider setting a stop-loss or taking profits. Wait for bullish signals before entering.',
+    color: '#e74c3c'
   };
 }
 

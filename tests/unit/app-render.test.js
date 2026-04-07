@@ -22,7 +22,9 @@ function createDOM() {
     <div id="toast-container"></div>
     <div id="loading-spinner" hidden></div>
     <section id="section-home" class="section active">
-      <div class="card disclaimer-card"><h2>Disclaimer</h2></div>
+      <div class="hero-card"><div id="home-gold-price">--</div><div id="home-silver-price">--</div><div id="home-stock-symbol">--</div></div>
+      <div class="feature-grid"><div class="feature-card" data-nav="section-stocks">Stocks</div><div class="feature-card" data-nav="section-utilities">Utilities</div></div>
+      <div class="card disclaimer-card"><p>Disclaimer</p></div>
     </section>
     <section id="section-stocks" class="section" hidden>
       <div id="analysis-results"><h2>Analysis Results</h2><p class="placeholder-text">Placeholder</p></div>
@@ -40,11 +42,17 @@ function createDOM() {
       <div id="calc-results"><h2>Results</h2><p class="placeholder-text">Enter trade details.</p></div>
     </section>
     <section id="section-utilities" class="section" hidden>
-      <div id="commodity-prices" class="card"><h2>Gold &amp; Silver Prices</h2><p class="placeholder-text">Loading...</p></div>
+      <div id="commodity-prices" class="card card-clickable"><h2>Gold &amp; Silver Prices</h2><p class="placeholder-text">Loading...</p></div>
       <div id="gold-detail" class="card" hidden>
         <div class="gold-detail-header"><h2>Gold Detail</h2><button id="gold-detail-close">Close</button></div>
+        <div class="karat-tabs" id="karat-tabs"></div>
         <div id="gold-karat-rates"></div>
-        <div class="chart-container"><canvas id="goldHistoryChart"></canvas></div>
+        <div class="gold-chart-section"><h3>History</h3><div class="metal-interval-tabs" id="gold-interval-tabs"></div><div id="gold-chart-status"></div><div class="chart-container"><canvas id="goldHistoryChart"></canvas></div></div>
+      </div>
+      <div id="silver-detail" class="card" hidden>
+        <div class="gold-detail-header"><h2>Silver Detail</h2><button id="silver-detail-close">Close</button></div>
+        <div id="silver-price-info"></div>
+        <div class="gold-chart-section"><div class="metal-interval-tabs" id="silver-interval-tabs"></div><div id="silver-chart-status"></div><div class="chart-container"><canvas id="silverHistoryChart"></canvas></div></div>
       </div>
       <div id="fuel-prices" class="card"><h2>Fuel Prices</h2>
         <select id="fuel-city-select"></select>
@@ -55,7 +63,8 @@ function createDOM() {
         <div id="rahu-data"><p class="placeholder-text">Loading...</p></div>
       </div>
       <div id="muhurat" class="card"><h2>Muhurat</h2>
-        <input type="date" id="muhurat-date-select" />
+        <select id="muhurat-city-select"></select>
+        <div id="muhurat-calendar" class="mini-calendar"></div>
         <div id="muhurat-data"><p class="placeholder-text">Loading...</p></div>
       </div>
     </section>
@@ -134,24 +143,32 @@ describe('initApp', () => {
 });
 
 describe('renderHome', () => {
-  beforeEach(() => createDOM());
+  let originalFetch;
 
-  it('should set the date if not already set', () => {
+  beforeEach(() => {
+    createDOM();
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes('XAU')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ price: 433000, updatedAt: '2026-04-07T10:00:00Z' }) });
+      if (url.includes('XAG')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ price: 6600, updatedAt: '2026-04-07T10:00:00Z' }) });
+      return Promise.reject(new Error('Unknown'));
+    });
+  });
+
+  afterEach(() => { globalThis.fetch = originalFetch; });
+
+  it('should set the date if not already set', async () => {
     const dateEl = document.getElementById('current-date');
     dateEl.textContent = '';
-
-    renderHome();
-
+    await renderHome();
     expect(dateEl.textContent).not.toBe('');
   });
 
-  it('should not overwrite existing date text', () => {
-    const dateEl = document.getElementById('current-date');
-    dateEl.textContent = 'Already Set';
-
-    renderHome();
-
-    expect(dateEl.textContent).toBe('Already Set');
+  it('should populate hero stats with live prices', async () => {
+    await renderHome();
+    const goldEl = document.getElementById('home-gold-price');
+    expect(goldEl.textContent).not.toBe('--');
+    expect(goldEl.textContent).toContain('₹');
   });
 });
 
@@ -329,48 +346,74 @@ describe('renderCalculator', () => {
 });
 
 describe('renderUtilities', () => {
-  beforeEach(() => createDOM());
+  let originalFetch;
 
-  it('should display gold and silver prices in the commodity-prices element', () => {
-    renderUtilities();
+  beforeEach(() => {
+    createDOM();
+    originalFetch = globalThis.fetch;
+    // Mock gold-api.com + sunrise-sunset.org responses
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes('gold-api.com') && url.includes('XAU')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ price: 433000, updatedAt: '2026-04-07T10:00:00Z' }) });
+      }
+      if (url.includes('gold-api.com') && url.includes('XAG')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ price: 6600, updatedAt: '2026-04-07T10:00:00Z' }) });
+      }
+      if (url.includes('sunrise-sunset.org')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({
+          status: 'OK',
+          results: { sunrise: '2026-04-07T00:56:00+00:00', sunset: '2026-04-07T13:24:00+00:00' }
+        })});
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it('should display live gold and silver prices', async () => {
+    await renderUtilities();
 
     const el = document.getElementById('commodity-prices');
     expect(el.innerHTML).toContain('Gold');
-    expect(el.innerHTML).toContain('7,250');
-    expect(el.innerHTML).toContain('gram');
+    expect(el.innerHTML).toContain('/g');
     expect(el.innerHTML).toContain('Silver');
-    expect(el.innerHTML).toContain('78,000');
-    expect(el.innerHTML).toContain('kg');
+    expect(el.innerHTML).toContain('/kg');
+    expect(el.innerHTML).toContain('LIVE');
   });
 
-  it('should display petrol and diesel prices with city selector', () => {
-    renderUtilities();
+  it('should display petrol and diesel prices with city selector', async () => {
+    await renderUtilities();
 
     const fuelData = document.getElementById('fuel-data');
     expect(fuelData.innerHTML).toContain('Petrol');
-    expect(fuelData.innerHTML).toContain('104.21');
-    expect(fuelData.innerHTML).toContain('litre');
+    expect(fuelData.innerHTML).toContain('/L');
     expect(fuelData.innerHTML).toContain('Diesel');
-    expect(fuelData.innerHTML).toContain('92.15');
   });
 
-  it('should populate fuel city selector', () => {
-    renderUtilities();
+  it('should populate fuel city selector', async () => {
+    await renderUtilities();
     const select = document.getElementById('fuel-city-select');
     expect(select.options.length).toBeGreaterThan(1);
   });
 
-  it('should display Rahu Kaal start and end times', () => {
-    renderUtilities();
+  it('should display Rahu Kaal with live sunrise data', async () => {
+    await renderUtilities();
+    // Wait for async Rahu Kaal render to complete
+    await new Promise(r => setTimeout(r, 50));
 
     const el = document.getElementById('rahu-data');
     expect(el.innerHTML).toContain('Start');
     expect(el.innerHTML).toContain('End');
     expect(el.innerHTML).toMatch(/\d{1,2}:\d{2}\s*(AM|PM)/);
+    expect(el.innerHTML).toContain('sunrise/sunset');
   });
 
-  it('should display Muhurat start and end times', () => {
-    renderUtilities();
+  it('should display Muhurat with live sunrise data', async () => {
+    await renderUtilities();
+    await new Promise(r => setTimeout(r, 50));
 
     const el = document.getElementById('muhurat-data');
     expect(el.innerHTML).toContain('Start');
@@ -378,9 +421,10 @@ describe('renderUtilities', () => {
     expect(el.innerHTML).toMatch(/\d{1,2}:\d{2}\s*(AM|PM)/);
   });
 
-  it('should handle missing DOM elements gracefully', () => {
+  it('should handle missing DOM elements gracefully', async () => {
     document.body.innerHTML = '';
-    expect(() => renderUtilities()).not.toThrow();
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('no'));
+    await expect(renderUtilities()).resolves.not.toThrow();
   });
 });
 

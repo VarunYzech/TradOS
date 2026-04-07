@@ -10,8 +10,12 @@
 <body>
 
   <header class="app-header">
-    <h1 class="app-name">TradeOS</h1>
+    <h1 class="app-name" id="logo-home" style="cursor:pointer" title="Go to Home">TradeOS</h1>
     <span id="current-date" class="header-date"></span>
+    <div class="header-controls">
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">🌙</button>
+      <button id="currency-toggle" class="currency-toggle" aria-label="Toggle currency">$ USD</button>
+    </div>
   </header>
 
   <div id="loading-spinner" class="loading-spinner" hidden>
@@ -23,29 +27,85 @@
   <main class="main-content">
 
     <section id="section-home" class="section active">
-      <div class="card disclaimer-card">
-        <h2>⚠️ Disclaimer</h2>
-        <p>This is not financial advice. All analysis, predictions, and signals are for informational purposes only. Please consult a qualified financial advisor before making investment decisions.</p>
+
+      <!-- Hero -->
+      <div class="hero-card">
+        <div class="hero-icon">📊</div>
+        <h2 class="hero-title">TradeOS</h2>
+        <p class="hero-subtitle">Your smart trading companion for stock markets</p>
+        <div class="hero-stats" id="home-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="home-gold-price">--</span>
+            <span class="hero-stat-label">Gold 24K/g</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="home-silver-price">--</span>
+            <span class="hero-stat-label">Silver/kg</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="home-stock-symbol">--</span>
+            <span class="hero-stat-label">Stock</span>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <h2>Welcome to TradeOS</h2>
-        <p>Your smart trading companion for Indian stock markets. Navigate using the tabs below to access tools and utilities.</p>
+
+      <!-- Feature Cards Grid -->
+      <div class="feature-grid">
+        <div class="feature-card" data-nav="section-stocks">
+          <div class="feature-icon">📈</div>
+          <h3>Stocks</h3>
+          <p>Live analysis, charts, signals &amp; predictions</p>
+        </div>
+        <div class="feature-card" data-nav="section-calculator">
+          <div class="feature-icon">🧮</div>
+          <h3>Calculator</h3>
+          <p>Profit/loss, risk assessment &amp; trade planning</p>
+        </div>
+        <div class="feature-card" data-nav="section-utilities">
+          <div class="feature-icon">🥇</div>
+          <h3>Utilities</h3>
+          <p>Gold, silver, fuel prices, Rahu Kaal &amp; Muhurat</p>
+        </div>
+        <div class="feature-card" data-nav="section-reminders">
+          <div class="feature-icon">🔔</div>
+          <h3>Reminders</h3>
+          <p>Set &amp; manage your trading reminders</p>
+        </div>
       </div>
-      <div class="card">
-        <h3>Quick Overview</h3>
-        <ul>
-          <li><strong>Stocks</strong> — Live analysis, charts, and trading signals</li>
-          <li><strong>Calculator</strong> — Profit/loss and risk assessment</li>
-          <li><strong>Utilities</strong> — Gold, silver, fuel prices, Rahu Kaal &amp; Muhurat</li>
-          <li><strong>Reminders</strong> — Set and manage your trading reminders</li>
-        </ul>
+
+      <!-- Disclaimer -->
+      <div class="card disclaimer-card disclaimer-compact">
+        <p>⚠️ This is not financial advice. All data is for informational purposes only.</p>
       </div>
+
     </section>
 
     <section id="section-stocks" class="section" hidden>
       <div class="card">
-        <h2>📈 Stock Price Chart</h2>
+        <div class="stock-header">
+          <h2>📈 Stock Price Chart</h2>
+
+          <!-- Category Pills -->
+          <div class="category-pills" id="stock-categories"></div>
+
+          <!-- Symbol Input with Autocomplete -->
+          <div class="stock-symbol-selector">
+            <div class="autocomplete-wrapper">
+              <input type="text" id="stock-symbol-input" placeholder="Type symbol or select from category..." autocomplete="off" aria-label="Stock symbol" />
+              <div class="autocomplete-dropdown" id="autocomplete-dropdown" hidden></div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="stock-symbol-btn">Load</button>
+          </div>
+          <div id="current-symbol" class="current-symbol"></div>
+
+          <!-- Time Interval Selector -->
+          <div class="interval-tabs" id="interval-tabs"></div>
+        </div>
         <div class="chart-container"><canvas id="priceChart"></canvas></div>
+        <div class="chart-info">
+          <span>📘 Blue line = Real-time price</span>
+          <span>📙 Yellow dashed = Moving Average (trend indicator)</span>
+        </div>
       </div>
       <div class="card" id="analysis-results">
         <h2>📊 Analysis Results</h2>
@@ -94,7 +154,7 @@
     </section>
 
     <section id="section-utilities" class="section" hidden>
-      <div class="card" id="commodity-prices">
+      <div class="card card-clickable" id="commodity-prices">
         <h2>🥇 Gold &amp; Silver Prices</h2>
         <p class="placeholder-text">Loading commodity prices...</p>
       </div>
@@ -103,15 +163,39 @@
           <h2>🥇 Gold Price Detail</h2>
           <button class="btn btn-small" id="gold-detail-close">✕ Close</button>
         </div>
+        <div class="karat-tabs" id="karat-tabs"></div>
         <div id="gold-karat-rates"></div>
-        <h3 style="margin-top:16px;">📈 30-Day Price History (24K)</h3>
-        <div class="chart-container" style="min-height:180px;max-height:280px;">
-          <canvas id="goldHistoryChart"></canvas>
+        <div class="gold-chart-section">
+          <div class="chart-section-header">
+            <h3>📈 Gold Price History</h3>
+            <div class="metal-interval-tabs" id="gold-interval-tabs"></div>
+          </div>
+          <div id="gold-chart-status" class="update-time"></div>
+          <div class="chart-container" style="min-height:200px;max-height:300px;">
+            <canvas id="goldHistoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="silver-detail" hidden>
+        <div class="gold-detail-header">
+          <h2>🥈 Silver Price Detail</h2>
+          <button class="btn btn-small" id="silver-detail-close">✕ Close</button>
+        </div>
+        <div id="silver-price-info"></div>
+        <div class="gold-chart-section">
+          <div class="chart-section-header">
+            <h3>📈 Silver Price History</h3>
+            <div class="metal-interval-tabs" id="silver-interval-tabs"></div>
+          </div>
+          <div id="silver-chart-status" class="update-time"></div>
+          <div class="chart-container" style="min-height:200px;max-height:300px;">
+            <canvas id="silverHistoryChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="card" id="fuel-prices">
         <h2>⛽ Petrol &amp; Diesel Prices</h2>
-        <div class="form-group" style="margin-bottom:10px;">
+        <div class="form-group">
           <label for="fuel-city-select">Select City</label>
           <select id="fuel-city-select" aria-label="Select city for fuel prices"></select>
         </div>
@@ -127,10 +211,13 @@
       </div>
       <div class="card" id="muhurat">
         <h2>🌟 Muhurat</h2>
-        <div class="form-group" style="margin-bottom:10px;">
-          <label for="muhurat-date-select">Select Date</label>
-          <input type="date" id="muhurat-date-select" aria-label="Select date for Muhurat">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="muhurat-city-select">Select City</label>
+            <select id="muhurat-city-select" aria-label="Select city for Muhurat"></select>
+          </div>
         </div>
+        <div id="muhurat-calendar" class="mini-calendar"></div>
         <div id="muhurat-data"><p class="placeholder-text">Loading Muhurat timings...</p></div>
       </div>
     </section>

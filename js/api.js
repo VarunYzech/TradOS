@@ -1,5 +1,6 @@
 /** Module-level cache for last successful closing prices */
 let cachedData = null;
+let cachedStockCurrency = 'USD';
 
 /**
  * Load and parse /data/config.json.
@@ -40,6 +41,14 @@ export function extractClosingPrices(responseData) {
  */
 export function getCachedData() {
   return cachedData;
+}
+
+/**
+ * Get the currency of the last fetched stock.
+ * @returns {string} 'USD', 'INR', etc.
+ */
+export function getStockCurrency() {
+  return cachedStockCurrency;
 }
 
 /**
@@ -88,6 +97,10 @@ export async function fetchStockData(symbol = 'RELIANCE.NSE', interval = '1min',
     const data = await response.json();
     if (data.status === 'error' || !data.values) {
       throw new Error(data.message || 'Invalid API response');
+    }
+    // Extract currency from API meta (e.g., "USD" for US stocks, "INR" for BSE/NSE)
+    if (data.meta && data.meta.currency) {
+      cachedStockCurrency = data.meta.currency;
     }
     const prices = extractClosingPrices(data);
     cachedData = prices;
