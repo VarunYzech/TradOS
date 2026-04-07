@@ -1,0 +1,16 @@
+{
+  "name": "tradeos",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TradeOS - Mobile-first trading web app with smart trading engine for Indian stock markets",
+  "scripts": {
+    "test": "vitest run",
+    "start": "npx serve . -l 3000"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.1",
+    "@vitest/coverage-v8": "^3.2.1",
+    "jsdom": "^26.1.0",
+    "fast-check": "^4.1.1"
+  }
+}

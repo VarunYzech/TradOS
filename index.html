@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TradeOS - Smart Trading Engine for Indian Stock Markets">
+  <title>TradeOS - Trading Engine</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1 class="app-name">TradeOS</h1>
+    <span id="current-date" class="header-date"></span>
+  </header>
+
+  <div id="loading-spinner" class="loading-spinner" hidden>
+    <div class="spinner"></div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <main class="main-content">
+
+    <section id="section-home" class="section active">
+      <div class="card disclaimer-card">
+        <h2>⚠️ Disclaimer</h2>
+        <p>This is not financial advice. All analysis, predictions, and signals are for informational purposes only. Please consult a qualified financial advisor before making investment decisions.</p>
+      </div>
+      <div class="card">
+        <h2>Welcome to TradeOS</h2>
+        <p>Your smart trading companion for Indian stock markets. Navigate using the tabs below to access tools and utilities.</p>
+      </div>
+      <div class="card">
+        <h3>Quick Overview</h3>
+        <ul>
+          <li><strong>Stocks</strong> — Live analysis, charts, and trading signals</li>
+          <li><strong>Calculator</strong> — Profit/loss and risk assessment</li>
+          <li><strong>Utilities</strong> — Gold, silver, fuel prices, Rahu Kaal &amp; Muhurat</li>
+          <li><strong>Reminders</strong> — Set and manage your trading reminders</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="section-stocks" class="section" hidden>
+      <div class="card">
+        <h2>📈 Stock Price Chart</h2>
+        <div class="chart-container"><canvas id="priceChart"></canvas></div>
+      </div>
+      <div class="card" id="analysis-results">
+        <h2>📊 Analysis Results</h2>
+        <p class="placeholder-text">Navigate here to load stock data and analysis.</p>
+      </div>
+      <div class="card" id="decision-display">
+        <h2>🎯 Trading Decision</h2>
+        <p class="placeholder-text">Decision will appear after analysis.</p>
+      </div>
+      <div class="card" id="prediction-display">
+        <h2>🔮 Price Prediction</h2>
+        <p class="placeholder-text">Prediction will appear after analysis.</p>
+      </div>
+    </section>
+
+    <section id="section-calculator" class="section" hidden>
+      <div class="card">
+        <h2>🧮 Profit/Loss Calculator</h2>
+        <form class="calc-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="calc-buy-price">Buy Price (₹)</label>
+            <input type="number" id="calc-buy-price" placeholder="e.g. 2500" min="0" step="0.01" aria-label="Buy price in rupees">
+          </div>
+          <div class="form-group">
+            <label for="calc-target">Target Price (₹)</label>
+            <input type="number" id="calc-target" placeholder="e.g. 2700" min="0" step="0.01" aria-label="Target price in rupees">
+          </div>
+          <div class="form-group">
+            <label for="calc-stop-loss">Stop-Loss Price (₹)</label>
+            <input type="number" id="calc-stop-loss" placeholder="e.g. 2400" min="0" step="0.01" aria-label="Stop-loss price in rupees">
+          </div>
+          <div class="form-group">
+            <label for="calc-capital">Capital (₹)</label>
+            <input type="number" id="calc-capital" placeholder="e.g. 100000" min="0" step="1" aria-label="Capital in rupees">
+          </div>
+          <div class="form-group">
+            <label for="calc-quantity">Quantity (shares)</label>
+            <input type="number" id="calc-quantity" placeholder="Auto-calculated from capital" min="0" step="1" aria-label="Number of shares">
+          </div>
+        </form>
+      </div>
+      <div class="card" id="calc-results">
+        <h2>📋 Results</h2>
+        <p class="placeholder-text">Enter trade details above to see results.</p>
+      </div>
+    </section>
+
+    <section id="section-utilities" class="section" hidden>
+      <div class="card" id="commodity-prices">
+        <h2>🥇 Gold &amp; Silver Prices</h2>
+        <p class="placeholder-text">Loading commodity prices...</p>
+      </div>
+      <div class="card" id="gold-detail" hidden>
+        <div class="gold-detail-header">
+          <h2>🥇 Gold Price Detail</h2>
+          <button class="btn btn-small" id="gold-detail-close">✕ Close</button>
+        </div>
+        <div id="gold-karat-rates"></div>
+        <h3 style="margin-top:16px;">📈 30-Day Price History (24K)</h3>
+        <div class="chart-container" style="min-height:180px;max-height:280px;">
+          <canvas id="goldHistoryChart"></canvas>
+        </div>
+      </div>
+      <div class="card" id="fuel-prices">
+        <h2>⛽ Petrol &amp; Diesel Prices</h2>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label for="fuel-city-select">Select City</label>
+          <select id="fuel-city-select" aria-label="Select city for fuel prices"></select>
+        </div>
+        <div id="fuel-data"><p class="placeholder-text">Loading fuel prices...</p></div>
+      </div>
+      <div class="card" id="rahu-kaal">
+        <h2>🕐 Rahu Kaal</h2>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label for="rahu-city-select">Select City</label>
+          <select id="rahu-city-select" aria-label="Select city for Rahu Kaal"></select>
+        </div>
+        <div id="rahu-data"><p class="placeholder-text">Loading Rahu Kaal timings...</p></div>
+      </div>
+      <div class="card" id="muhurat">
+        <h2>🌟 Muhurat</h2>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label for="muhurat-date-select">Select Date</label>
+          <input type="date" id="muhurat-date-select" aria-label="Select date for Muhurat">
+        </div>
+        <div id="muhurat-data"><p class="placeholder-text">Loading Muhurat timings...</p></div>
+      </div>
+    </section>
+
+    <section id="section-reminders" class="section" hidden>
+      <div class="card">
+        <h2>🔔 Add Reminder</h2>
+        <form class="reminder-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="reminder-title">Reminder Title</label>
+            <input type="text" id="reminder-title" placeholder="e.g. Check RELIANCE at market open" aria-label="Reminder title">
+          </div>
+          <div class="form-group">
+            <label for="reminder-datetime">Date &amp; Time</label>
+            <input type="datetime-local" id="reminder-datetime" aria-label="Reminder date and time">
+          </div>
+          <button type="button" id="reminder-add-btn" class="btn btn-primary">Add Reminder</button>
+        </form>
+      </div>
+      <div class="card">
+        <h2>📝 Your Reminders</h2>
+        <div id="reminder-list"><p class="placeholder-text">No reminders yet. Add one above.</p></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>⚠️ This is not financial advice. All data is for informational purposes only.</p>
+  </footer>
+
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button class="nav-tab active" data-section="section-home" aria-label="Home">
+      <span class="nav-icon">🏠</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-tab" data-section="section-stocks" aria-label="Stocks">
+      <span class="nav-icon">📈</span><span class="nav-label">Stocks</span>
+    </button>
+    <button class="nav-tab" data-section="section-calculator" aria-label="Calculator">
+      <span class="nav-icon">🧮</span><span class="nav-label">Calculator</span>
+    </button>
+    <button class="nav-tab" data-section="section-utilities" aria-label="Utilities">
+      <span class="nav-icon">🔧</span><span class="nav-label">Utilities</span>
+    </button>
+    <button class="nav-tab" data-section="section-reminders" aria-label="Reminders">
+      <span class="nav-icon">🔔</span><span class="nav-label">Reminders</span>
+    </button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
